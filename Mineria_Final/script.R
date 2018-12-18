@@ -21,7 +21,7 @@ library(ggcorrplot)
 #FinelineNumber - a more refined category for each of the products, created by Walmart
 
 
-train = read.csv('train.csv')
+train = readr::read_csv('train.csv')
 
 # Departamentos de Walmart US
 
@@ -29,19 +29,20 @@ electronics_office         = c('ACCESSORIES', 'ELECTRONICS', 'HARDWARE', 'OFFICE
                                'WIRELESS', 'CAMERAS AND SUPPLIES')
 movies_music_books         = c('BOOKS AND MAGAZINES')
 home_forniture_appliances  = c('BEDDING', 'CONCEPT STORES', 'COOK AND DINE', 'FURNITURE', 
-                               'HOME DECOR', 'HOME MANAGEMENT')
+                               'HOME DECOR', 'HOME MANAGEMENT', 'LARGE HOUSEHOLD GOODS')
 improvement_patio          = c('HORTICULTURE AND ACCESS', 'LAWN AND GARDEN', 'PAINT AND ACCESSORIES')
-clothing_shoes_accessories = c('BOYS WEAR', 'BRAS & SHAPEWEAR', 'GIRLS WEAR, 4-6X  AND 7-14', 'INFANT APPAREL', 
+clothing                   = c('BOYS WEAR', 'BRAS & SHAPEWEAR', 'GIRLS WEAR, 4-6X  AND 7-14', 
                                'JEWELRY AND SUNGLASSES', 'LADIES SOCKS', 'LADIESWEAR', 'MENSWEAR', 'MENS WEAR',
                                'PLUS AND MATERNITY', 'SHEER HOSIERY', 'SHOES', 'SLEEPWEAR/FOUNDATIONS')
-baby_toddler               = c('INFANT CONSUMABLE HARDLINES')
+shoes_accessories          = c('JEWELRY AND SUNGLASSES','SHOES')
+baby_toddler               = c('INFANT CONSUMABLE HARDLINES', 'INFANT APPAREL')
 toys_videogames            = c('MEDIA AND GAMING', 'PLAYERS AND ELECTRONICS','TOYS')
-food_household_pets        = c('BAKERY', 'CANDY, TOBACCO, COOKIES', 'COMM BREAD', 'DAIRY', 'DSD GROCERY', 
-                               'FROZEN FOODS', 'GROCERY DRY GOODS', 'HOUSEHOLD CHEMICALS/SUPP', 'HOUSEHOLD PAPER GOODS', 
-                               'LARGE HOUSEHOLD GOODS', 'LIQUOR,WINE,BEER', 'MEAT - FRESH & FROZEN', 'PETS AND SUPPLIES', 
+food                       = c('BAKERY', 'CANDY, TOBACCO, COOKIES', 'COMM BREAD', 'DAIRY', 'DSD GROCERY', 
+                               'FROZEN FOODS', 'GROCERY DRY GOODS', 'MEAT - FRESH & FROZEN',
                                'PRE PACKED DELI','PRODUCE', 'SEAFOOD', 'SERVICE DELI')
-pharma_health_beauty       = c('BATH AND SHOWER', 'BEAUTY', 'HEALTH AND BEAUTY AIDS', 'OPTICAL - FRAMES', 'OPTICAL - LENSES',
-                               'PERSONAL CARE', 'PHARMACY OTC', 'PHARMACY RX')
+household                  = c('HOUSEHOLD CHEMICALS/SUPP', 'HOUSEHOLD PAPER GOODS')
+pharma_optical             = c('PHARMACY OTC', 'PHARMACY RX','OPTICAL - FRAMES', 'OPTICAL - LENSES')
+beauty                     = c('BEAUTY', 'HEALTH AND BEAUTY AIDS','PERSONAL CARE')
 sports_fit_outdoors        = c('SPORTING GOODS', 'SWIMWEAR/OUTERWEAR')
 auto_tires_industrial      = c('AUTOMOTIVE')
 photo_personalized         = c('1-HR PHOTO')
@@ -52,8 +53,8 @@ train = train %>%
   group_by(TripType, VisitNumber, Weekday, Upc, DepartmentDescription, FinelineNumber) %>%
   summarise(ScanCount = sum(ScanCount)) %>%
   ungroup() %>%
-  filter(ScanCount != 0) %>%
-  mutate(ScanType = factor(ifelse(ScanCount > 0, 'Purchase', 'Return')),
+  mutate(ScanType = factor(ifelse(ScanCount > 0, 'Purchase', 
+                            ifelse(ScanCount < 0,'Return','Check'))),
          Weekday  = factor(Weekday, levels = c('Monday', 'Tuesday','Wednesday', 
                                               'Thursday', 'Friday', 'Saturday', 
                                               'Sunday')),
@@ -61,19 +62,22 @@ train = train %>%
                        ifelse(DepartmentDescription %in% movies_music_books, 'MUSIC, MOVIES AND BOOKS',
                         ifelse(DepartmentDescription %in% home_forniture_appliances, 'HOME AND APPLIANCES',
                          ifelse(DepartmentDescription %in% improvement_patio, 'HOME IMPROVEMENT AND PATIO',
-                          ifelse(DepartmentDescription %in% clothing_shoes_accessories, 'CLOTHING, SHOES AND ACCESORIES',
+                          ifelse(DepartmentDescription %in% clothing, 'CLOTHING',
+                           ifelse(DepartmentDescription %in% shoes_accessories, 'SHOES AND ACCESSORIES',
                            ifelse(DepartmentDescription %in% baby_toddler, 'BABY AND TODDLER',
                             ifelse(DepartmentDescription %in% toys_videogames, 'TOYS AND VIDEOGAMES',
-                             ifelse(DepartmentDescription %in% food_household_pets, 'FOOD, HOUSEHOLD AND PETS',
-                              ifelse(DepartmentDescription %in% pharma_health_beauty, 'PHARMACY, HEALTH AND BEAUTY',
-                               ifelse(DepartmentDescription %in% sports_fit_outdoors, 'SPORTS, FITNESS AND OUTDOORS',
-                                ifelse(DepartmentDescription %in% auto_tires_industrial, 'AUTOMOTIVE AND TIRES',
-                                 ifelse(DepartmentDescription %in% photo_personalized, 'PHOTO AND PERSONALIZED',
-                                  ifelse(DepartmentDescription %in% art_craft_party, 'ART, CRAFT AND PARTY', as.character(DepartmentDescription))))))))))))))),
+                             ifelse(DepartmentDescription %in% food, 'FOOD',
+                              ifelse(DepartmentDescription %in% household, 'HOUSEHOLD',
+                               ifelse(DepartmentDescription %in% pharma_optical, 'PHARMACY AND OPTICAL',
+                                ifelse(DepartmentDescription %in% beauty, 'HEALTH AND BEAUTY',
+                                ifelse(DepartmentDescription %in% sports_fit_outdoors, 'SPORTS, FITNESS AND OUTDOORS',
+                                 ifelse(DepartmentDescription %in% auto_tires_industrial, 'AUTOMOTIVE AND TIRES',
+                                  ifelse(DepartmentDescription %in% photo_personalized, 'PHOTO AND PERSONALIZED',
+                                   ifelse(DepartmentDescription %in% art_craft_party, 'ART, CRAFT AND PARTY', as.character(DepartmentDescription)))))))))))))))))),
          TripType = factor(TripType),
          DepartmentDescription = str_replace(DepartmentDescription, 'MENSWEAR', 'MENS WEAR'),
          DepartmentDescription = str_replace(DepartmentDescription, 'GIRLS WEAR, 4-6X  AND 7-14|BOYS WEAR', 'KIDS WEAR'),
-         DepartmentDescription = str_replace(DepartmentDescription, 'LADIES SOCKS|BRAS & SHAPEWEAR|SHEER HOSIERY', 'KIDS WEAR'),
+         DepartmentDescription = str_replace(DepartmentDescription, 'LADIES SOCKS|BRAS & SHAPEWEAR|SHEER HOSIERY|SLEEPWEAR/FOUNDATIONS|PLUS AND MATERNITY', 'LADIESWEAR'),
          DepartmentDescription = factor(DepartmentDescription))
 
 train %>%
@@ -93,6 +97,45 @@ train %>%
   scale_fill_gradient2_tableau()
 
 train %>%
+  group_by(DepartmentDescription, TripType, ScanType) %>%
+  summarise(Items = sum(abs(ScanCount))) %>%
+  filter(ScanType == 'Purchase') %>%
+  ggplot(aes(y = reorder(DepartmentDescription, Items), 
+             x = reorder(TripType, Items), 
+             fill = log(Items))) + 
+  geom_raster() + 
+  facet_grid(ScanType~., scales = 'free') + 
+  scale_fill_gradient2_tableau()
+
+train %>%
+  group_by(Department, TripType, ScanType, Weekday) %>%
+  summarise(Items = sum(abs(ScanCount))) %>%
+  filter(ScanType == 'Purchase') %>%
+  ggplot(aes(y = reorder(Department, Items), x = reorder(TripType, Items), fill = log(Items))) + 
+  geom_raster() + 
+  facet_grid(.~Weekday) + 
+  scale_fill_gradient2_tableau() +   
+  theme(axis.text.x = element_text(angle = 90, hjust =1, vjust = 0.5, size = 9),
+        axis.text.y = element_text(size = 9)) + coord_flip()
+
+train %>%
+  group_by(Weekday, TripType, ScanType, VisitNumber) %>%
+  summarise(Items = unique(ScanCount)/sum(abs(ScanCount))) %>%
+  ggplot(aes(y = reorder(Weekday, Items), x = reorder(TripType, Items), fill = log(Items))) + 
+  geom_raster() + 
+  facet_grid(ScanType~., scales = 'free') + 
+  scale_fill_viridis_c()
+
+train %>%
+  group_by(Weekday, TripType, ScanType) %>%
+  summarise(Items = sum(abs(ScanCount))) %>%
+  ggplot(aes(x = (Items), fill = Weekday, alpha = 0.5)) + 
+  geom_density() + facet_grid(Weekday~ScanType, scales = 'free_y')+
+  scale_fill_colorblind()
+
+#Cambiar NULL == OTHER DEPARTMENT
+
+train %>%
   filter(ScanType == 'Purchase') %>%
   group_by(Department, TripType) %>%
   summarise(Items = sum(abs(ScanCount)))  %>%
@@ -100,24 +143,29 @@ train %>%
   mutate_all(function(y) ifelse(is.na(y), 0, y)) %>%
   select(-TripType) %>% 
   cor() %>%
-  ggcorrplot(method = 'circle', type = 'upper', lab = TRUE) + 
-  scale_fill_gradient2_tableau() +  labs(fill = 'Correl')
+  ggcorrplot(lab = TRUE) + 
+  scale_fill_gradient2_tableau() +  labs(fill = 'Correl') +
+  theme(axis.text.x = element_text(angle = 90, hjust =1, vjust = 0.5, size = 9),
+        axis.text.y = element_text(size = 9))
 
 train %>%
   filter(ScanType == 'Purchase') %>%
-  group_by(DepartmentDescription, TripType) %>%
+  arrange(Department) %>%
+  group_by(Department, DepartmentDescription, TripType) %>%
   summarise(Items = sum(abs(ScanCount)))  %>%
   spread(DepartmentDescription, Items) %>%
   mutate_all(function(y) ifelse(is.na(y), 0, y)) %>%
-  select(-TripType) %>% 
+  ungroup()%>%
+  select(-TripType, -Department) %>% 
+  scale() %>%
   cor() %>%
-  ggcorrplot(type = 'upper') + 
+  ggcorrplot() + 
   scale_fill_gradient2_tableau() +  labs(fill = 'Correl') +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 6))
+  theme(axis.text.x = element_text(angle = 90, hjust =1, vjust = 0.5, size = 9),
+        axis.text.y = element_text(size = 9))
 
-x[is.na(x)] = 0
 
-library(corrplot)
+y = train %>% spread(DepartmentDescription, ScanCount, -TripType)
 
 train %>%
   group_by(Weekday, DepartmentDescription, ScanType) %>%
