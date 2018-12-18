@@ -20,11 +20,21 @@ graficas_una_variable <- function(df, todas, vars){
            main="Histograma de una variable continua",xlab=va))
     }
     else{
-      do.call("boxplot", list(x=c(params$data[va] %>% unlist()), names=va, pch=16, col="royalblue2", xlab=va))
+#      do.call("boxplot", list(x=c(params$data[va] %>% unlist()), names=va, pch=16, col="royalblue2", xlab=va))
+      y_lab <- do.call("ylab", list(label="Frequency")) 
+      x_lab <- do.call("xlab", list(label=va))
+      them <- do.call("theme", list(axis.text.x=element_text(angle=-80,hjust=1)))
+      aess <- do.call("aes_string", list(x=va, weight="..count.."))
+      gbar <- do.call("geom_bar", list(fill="blue"))
+      scal <- do.call("scale_x_discrete", list(limits=unique(params$data[va]) %>% unlist()))
+      titl <- do.call("ggtitle", list(label='grafica de barras de variable categórica'))
+      
+      li <- list(x_lab, y_lab, them, aess, gbar, scal, titl)
+      print(do.call("ggplot", params) + li)
+
     }
   }
 }
-
 
 graficas_par_variables <- function(df, todas, vars) {
   params <- list(data = df)
