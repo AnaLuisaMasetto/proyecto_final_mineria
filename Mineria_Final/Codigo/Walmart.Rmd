@@ -89,7 +89,7 @@ graficas_una_variable(walmart_data, FALSE, c("TripType", "VisitNumber", "Weekday
 ### Análisis bivariado 
 
 ```{r}
-#graficas_par_variable(walmart_data, FALSE, c("TripType", "VisitNumber", "Weekday", "Department", "ScanType", "ManufacturerCode", "ProductCode"))
+#graficas_par_variables(walmart_data, FALSE, c("TripType", "VisitNumber", "Weekday", "Department", "ScanType", "ManufacturerCode", "ProductCode"))
 ```
 
 ### Análisis multivariado
