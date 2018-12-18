@@ -1,0 +1,96 @@
+---
+title: "Proyecto-Final"
+date: "21 diciembre 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+## Limpieza
+
+```{r}
+direc <- "./" 
+
+library(readr)
+library(stringr)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+library(gridExtra)
+library(purrr)
+
+source(paste(direc,"utils.R", sep=''))
+source(paste(direc,"01-load.R", sep=''))
+```
+Los datos antes de prepararlos se ven de la siguiente forma:  
+```{r}
+glimpse(walmart_data)
+```
+
+```{r}
+source(paste(direc,"02-clean.R", sep=''))
+save.rds.wal(1)
+```
+
+```{r}
+glimpse(walmart_data)
+```
+
+```{r}
+summary(walmart_data)
+```
+
+```{r}
+#library(mice)
+#md.pattern(walmart_data)
+```
+Como podemos ver, los valores faltantes son de Upc y FineLineNumber
+```{r}
+#library("VIM")
+#aggr(walmart_data, prop=FALSE, numbers=TRUE)
+```
+
+```{r}
+#pone todas las variables en cero, menos las que son NA las pone en 1
+#x <- as.data.frame(abs(is.na(walmart_data))) # df es un data.frame
+# Extrae las variables que tienen algunas celdas con NAs es decir hace select en x
+#y <- x[which(sapply(x, sd) > 0)] 
+# Da la correlación un valor alto positivo significa que desaparecen juntas.
+#cor(y) 
+```
+
+```{r}
+#hace filter de rows con NA pero toma todas las variables
+#walmart_con_NAs <- walmart_data[!complete.cases(walmart_data),]
+
+#walmart_con_NAs[c('Upc', 'FinelineNumber')]  %>%
+#  print(n = 57)
+```
+
+```{r}
+source(paste(direc,"toolset.R", sep=''))
+source(paste(direc,"groups2.R", sep=''))
+source(paste(direc,"03-engineering.R", sep=''))
+summary(walmart_data)
+```
+
+## Análisis exploratorio
+
+### Análisis univariado
+
+```{r}
+graficas_una_variable(walmart_data, FALSE, c("TripType", "VisitNumber", "Weekday", "Department", "ScanType", "ManufacturerCode", "ProductCode"))
+```
+
+
+### Análisis bivariado 
+
+```{r}
+#graficas_par_variable(walmart_data, FALSE, c("TripType", "VisitNumber", "Weekday", "Department", "ScanType", "ManufacturerCode", "ProductCode"))
+```
+
+### Análisis multivariado
+
