@@ -16,8 +16,9 @@ graficas_una_variable <- function(df, todas, vars){
     if(cva==TRUE){
       bins <- floor((min(params$data[va] %>% unlist()) - min(params$data[va] %>% unlist()))/10)
       bins1 <- ifelse(bins==0,1,bins)
-      do.call("hist", list(x=params$data[va] %>% unlist(), breaks=bins1,col = 'darkgray', border = 'white', 
-           main="Histograma de una variable continua",xlab=va))
+#      do.call("hist", list(x=params$data[va] %>% unlist(), breaks=bins1,col = 'darkgray', border = 'white', 
+#           main="Histograma de una variable continua",xlab=va))
+       do.call("boxplot", list(x=c(params$data[va] %>% unlist()), names=va, pch=16, col="royalblue2", xlab=va))
     }
     else{
 #      do.call("boxplot", list(x=c(params$data[va] %>% unlist()), names=va, pch=16, col="royalblue2", xlab=va))
