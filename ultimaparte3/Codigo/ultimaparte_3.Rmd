@@ -1,0 +1,82 @@
+---
+title: "Proyecto-Final"
+date: "21 diciembre 2018"
+output: pdf_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+direc <- "./" 
+library(tidyverse)
+library(readr)
+library(stringr)
+#library(tidyr)
+#library(dplyr)
+library(ggplot2)
+library(ggthemes)
+library(gridExtra)
+library(purrr)
+library(mice)
+library(VIM)
+```
+
+#ENTRENAMIENTO 
+
+Es en esta parte donde se le da el formato adecuado a la base de datos correspodiente a entrenamiento. 
+
+```{r}
+source(paste(direc,"utils.R", sep=''))
+source(paste(direc,"01-load.R", sep=''))
+source(paste(direc,"02-clean.R", sep=''))
+save.rds.wal(1)
+source(paste(direc,"groups2.R", sep=''))
+source(paste(direc,"03-engineering.R", sep=''))
+```
+
+```{r}
+#unique(walmart_data$DepartmentDescription)
+```
+
+```{r}
+#unique(walmart_data$Department_E2)
+```
+
+
+```{r}
+b<- walmart_data%>%
+  group_by(TripType, VisitNumber, Weekday, Upc, DepartmentDescription,FinelineNumber) %>%
+  summarise(ScanCount = sum(as.numeric(ScanCount), na.rm = T))
+
+train <- spread(b, DepartmentDescription, ScanCount) %>%
+  mutate_all(function(x) ifelse( is.na(x), 0, x)) %>%
+  group_by(VisitNumber, Weekday)%>%
+  summarise_at(6:67,sum,na.rm = T)
+  
+write.csv(train,'train_clean.csv')
+```
+
+
+#TEST 
+
+Es en esta parte donde se le da el formato adecuado a la base de datos correspodiente a prueba. 
+
+
+```{r}
+source(paste(direc,"utils_test.R", sep=''))
+source(paste(direc,"01-load-test.R", sep=''))
+source(paste(direc,"02-clean-test.R", sep=''))
+save.rds.wal.test(1)
+source(paste(direc,"03-engineering-test.R", sep=''))
+```
+
+```{r}
+a<- walmart_test%>%
+  group_by(VisitNumber, Weekday, Upc, DepartmentDescription,FinelineNumber) %>%
+  summarise(ScanCount = sum(as.numeric(ScanCount), na.rm = T))
+
+test <- spread(a, DepartmentDescription, ScanCount) %>%
+  mutate_all(function(x) ifelse( is.na(x), 0, x)) %>%
+  group_by(VisitNumber, Weekday)#%>%
+  #summarise_at(5:66,sum,na.rm = T)
+  
+write.csv(test,'test_clean.csv')
+```
